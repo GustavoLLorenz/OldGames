@@ -15,6 +15,7 @@ class Player{
         }
 
         this.rotation = 0
+        this.opacity = 1
         // aqui carrego a imagem do jogador
         const image = new Image()
         image.src = './img/spaceship.png'
@@ -46,6 +47,7 @@ class Player{
        //quando a condiçao do if é vdd
        //(quando so tem uma condiçao nao precisa de {})
        c.save()
+       c.globalAlpha = this.opacity
        c.translate(player.position.x + player.width/2, player.position.y + player.height/2)
        c.rotate(this.rotation)
        c.translate(-player.position.x - player.width/2, -player.position.y - player.height/2)
@@ -90,12 +92,13 @@ class Projectile{
 
 }
 class Particle{
-    constructor({position, velocity, radius, color}){
+    constructor({position, velocity, radius, color, fades}){
         this.position = position
         this.velocity = velocity
         this.radius = radius
         this.color = color
         this.opacity = 1
+        this.fades = fades
     }
     
     draw(){
@@ -113,7 +116,10 @@ class Particle{
         this.draw()
         this.position.x += this.velocity.x
         this.position.y += this.velocity.y
-        this.opacity -= 0.01
+        if(this.fades){
+            this.opacity -= 0.01
+        }
+        
     }
 
 }
@@ -241,6 +247,10 @@ const projectiles = []
 const grids = []
 const invaderProjectiles = []
 const particles = []
+let game = {
+    over: false,
+    active: true
+}
 
 const keys ={
     a:{
@@ -258,8 +268,26 @@ const keys ={
 let frames = 0
 //o let randomInterval é para ter um controle da primeira grid de inimigos.
 let randomInterval = Math.floor((Math.random() * 500) + 500)
+//criando o background!
+for(let i = 0 ; i < 100; i += 1){
+    particles.push(new Particle({
+        position:{
+            x: (Math.random() * canvas.width),
+             y: (Math.random() * canvas.height)
+        },
+        velocity:{
+            x: 0 ,
+            y: 0.2
+        },
+        radius: Math.random() * 2,
+        color: 'white' 
+    })
+)
+}
 
-function createParticles({object,color}){
+
+
+function createParticles({object,color, fades}){
     for(let i = 0 ; i < 15; i += 1){
         particles.push(new Particle({
             position:{
@@ -271,13 +299,15 @@ function createParticles({object,color}){
                 y: (Math.random() - 0.5) * 2
             },
             radius: Math.random() * 3,
-            color: color || '#BAA0DE' 
+            color: color || '#BAA0DE',
+            fades
         })
     )
     }
 }
 //func feita para gerenciar a animação do jogo,atualizando prejeteis,jogador e inimigo
 function animate(){
+    if(!game.active) return
     requestAnimationFrame(animate)
     c.fillStyle = 'black'
     //agora para preencher o canvas da cor preta
@@ -286,6 +316,10 @@ function animate(){
     
     player.update()
     particles.forEach((particle, i) => {
+        if(particle.position.y - particle.radius >= canvas.height){
+            particle.position.x = Math.random() * canvas.width
+            particle.position.y = -particle.radius
+        }
         if(particle.opacity <= 0 ){
             setTimeout(() => {
                 particle.splice(i, 1)
@@ -308,11 +342,18 @@ function animate(){
             
             setTimeout(() => {
                 invaderProjectiles.splice(index, 1)
+                player.opacity = 0
+                game.over = true
             },0)
+            setTimeout(() => {
+                game.active = false
+
+            },2000)
             console.log("yoyu lose")
             createParticles({
                 object: player,
-                color:  'white'
+                color:  'white',
+                fades: true
             })
         }
         
@@ -354,7 +395,8 @@ function animate(){
                         if(invaderFound && projectileFound){
                             
                             createParticles({
-                                object: invader
+                                object: invader,
+                                fades: true
                             })
 
                             grid.invaders.splice(i,1)
@@ -400,7 +442,9 @@ function animate(){
 
 animate()
 addEventListener('keydown', ({key}) => {
+    if(game.over) return
     switch(key){
+        
         case 'a':
             
             

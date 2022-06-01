@@ -41,7 +41,22 @@ class Player {
     }
 }
 
+class Pellet {
+    constructor({position}){
+        this.position = position
+        this.radius = 3
+    }
+    draw(){
+        c.beginPath()
+        c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+        c.fillStyle = 'white'
+        c.fill()
+        c.closePath()
+    }
 
+}
+
+const pellets = []
 const boundaries = []
 const player = new Player({
     position: {
@@ -72,16 +87,17 @@ const keys = {
 let lastKey = ''
 
 const map = [
-    ['1', '-','-','-','-','-','-','2'],
-    ['|', ' ',' ',' ',' ',' ',' ','|'],
-    ['|', ' ','b',' ','b',' ',' ','|'],
-    ['|', ' ',' ',' ',' ',' ',' ','|'],
-    ['|', ' ','b',' ','b',' ',' ','|'],
-    ['|', ' ',' ',' ',' ',' ',' ','|'],
-    ['|', ' ',' ',' ',' ',' ',' ','|'],
-    ['|', ' ','b',' ','b',' ',' ','|'],
-    ['|', ' ',' ',' ',' ',' ',' ','|'],
-    ['4', '-','-','-','-','-','-','3']
+    ['1', '-','-','-','-','-','-','-','2'],
+    ['|', '.','.','.','.','.','.','.','|'],
+    ['|', '.','b','.','b','.','b','.','|'],
+    ['|', '.','.','.','.','.','.','.','|'],
+    ['|', '.','b','.','b','.','b','.','|'],
+    ['|', '.','.','.','.','.','.','.','|'],
+    ['|', '.','b','.','b','.','b','.','|'],
+    ['|', '.','.','.','.','.','.','.','|'],
+    ['|', '.','b','.','b','.','b','.','|'],
+    ['|', '.','.','.','.','.',' ','.','|'],
+    ['4', '-','-','-','-','-','-','-','3']
 ]
 
 function createImage(src){
@@ -172,6 +188,30 @@ map.forEach((row, i) =>{
                     },
                     image: createImage('./img/block.png')
                 })
+                )
+                break
+                            case 'b':
+                boundaries.push(new Boundary({
+                    position:{
+                        x: Boundary.width * j,
+                        y: Boundary.height * i
+                
+                    },
+                    image: createImage('./img/block.png')
+                })
+                )
+                break
+            case '.':
+                pellets.push(
+                    new Pellet({
+                        position:{
+                            x: j * Boundary.width + Boundary.width/2,
+                            y: i * Boundary.height + Boundary.height/2
+                        }
+                    
+                    },
+                    
+                )
                 )
                 break
         }
@@ -281,7 +321,9 @@ function animate(){
         }
         
     }
-
+    pellets.forEach(pellet =>{
+        pellet.draw()
+    })
     boundaries.forEach((boundary) => {
         boundary.draw()
         if(
